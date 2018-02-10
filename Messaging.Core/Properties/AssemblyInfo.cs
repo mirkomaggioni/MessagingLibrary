@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ServiceBusReceiverApp")]
+[assembly: AssemblyTitle("Messaging.Core")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("ServiceBusReceiverApp")]
+[assembly: AssemblyProduct("AzureServiceBus")]
 [assembly: AssemblyCopyright("Copyright ©  2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("17289b67-979e-45c4-b6c9-a04aa95dd1ba")]
+[assembly: Guid("5395d950-2538-4879-86be-ccae661fdbda")]
 
 // Version information for an assembly consists of the following four values:
 //
