@@ -5,15 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ServiceBus.Messaging;
 using Messaging.Models;
+using System.Configuration;
 
 namespace Messaging.Services
 {
 	public class AzureServiceBusService
 	{
+		private readonly string _serviceBusConnectionString = ConfigurationManager.ConnectionStrings["AzureServiceBus"].ConnectionString;
 		private readonly MessagingFactory _factory;
-		public AzureServiceBusService(string serviceBusConnectionString)
+		public AzureServiceBusService()
 		{
-			_factory = MessagingFactory.CreateFromConnectionString(serviceBusConnectionString);
+			_factory = MessagingFactory.CreateFromConnectionString(_serviceBusConnectionString);
 		}
 
 		public async Task<bool> SendMessageToQueueAsync(string queueName, string message)
