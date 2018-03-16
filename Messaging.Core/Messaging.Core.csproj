@@ -114,10 +114,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Models\GenericEvent.cs" />
     <Compile Include="Models\GenericMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AzureEventHubsService.cs" />
+    <Compile Include="Services\AzureEventProcessorFactory.cs" />
     <Compile Include="Services\AzureServiceBusService.cs" />
+    <Compile Include="Services\EventProcessor.cs" />
+    <Compile Include="Services\GenericEventsService.cs" />
     <Compile Include="Services\MSMQService.cs" />
   </ItemGroup>
   <ItemGroup>
