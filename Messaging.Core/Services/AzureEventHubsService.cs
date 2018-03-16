@@ -42,8 +42,6 @@ namespace Messaging.Core.Services
 			var client = EventHubClient.CreateFromConnectionString(connectionStringBuilder.ToString());
 			_eventProcessorHost = new EventProcessorHost(eventHubPath, PartitionReceiver.DefaultConsumerGroupName, _eventHubConnectionString, _storageConnectionString, _containerName);
 			await _eventProcessorHost.RegisterEventProcessorFactoryAsync(_azureEventProcessorFactory);
-
-			//await _eventProcessorHost.RegisterEventProcessorAsync<EventProcessor>();
 		}
 
 		public async Task StopConsumeEventsFromHub()
