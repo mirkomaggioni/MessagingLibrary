@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Messaging.Services;
@@ -9,14 +8,13 @@ namespace ServiceBusTests.Services
 	[TestFixture]
 	public class AzureServiceBusServiceTests
 	{
-		private readonly string _serviceBusConnectionString = ConfigurationManager.ConnectionStrings["AzureServiceBus"].ConnectionString;
 		private readonly string _serviceBusQueue = "queuemmtest1";
 		private AzureServiceBusService _sut;
 
 		[SetUp]
 		public void Setup()
 		{
-			_sut = new AzureServiceBusService(_serviceBusConnectionString);
+			_sut = new AzureServiceBusService();
 		}
 
 		[Test]
