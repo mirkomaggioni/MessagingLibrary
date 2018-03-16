@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Azure.EventHubs;
@@ -14,6 +12,12 @@ namespace Messaging.Core.Services
 		private readonly string _storageConnectionString = ConfigurationManager.ConnectionStrings["AzureStorage"].ConnectionString;
 		private readonly string _containerName = "commtest1";
 		private EventProcessorHost _eventProcessorHost;
+		private readonly AzureEventProcessorFactory _azureEventProcessorFactory;
+
+		public AzureEventHubsService(AzureEventProcessorFactory azureEventProcessorFactory)
+		{
+			_azureEventProcessorFactory = azureEventProcessorFactory;
+		}
 
 		public async Task SendEventToHubAsync(string eventHubPath, string message)
 		{
@@ -37,41 +41,14 @@ namespace Messaging.Core.Services
 
 			var client = EventHubClient.CreateFromConnectionString(connectionStringBuilder.ToString());
 			_eventProcessorHost = new EventProcessorHost(eventHubPath, PartitionReceiver.DefaultConsumerGroupName, _eventHubConnectionString, _storageConnectionString, _containerName);
-			await _eventProcessorHost.RegisterEventProcessorAsync<EventProcessor>();
+			await _eventProcessorHost.RegisterEventProcessorFactoryAsync(_azureEventProcessorFactory);
+
+			//await _eventProcessorHost.RegisterEventProcessorAsync<EventProcessor>();
 		}
 
 		public async Task StopConsumeEventsFromHub()
 		{
 			await _eventProcessorHost.UnregisterEventProcessorAsync();
-		}
-	}
-
-	public class EventProcessor : IEventProcessor
-	{
-		public Task CloseAsync(PartitionContext context, CloseReason reason)
-		{
-			return Task.CompletedTask;
-		}
-
-		public Task OpenAsync(PartitionContext context)
-		{
-			return Task.CompletedTask;
-		}
-
-		public Task ProcessErrorAsync(PartitionContext context, Exception error)
-		{
-			return Task.CompletedTask;
-		}
-
-		public Task ProcessEventsAsync(PartitionContext context, IEnumerable<EventData> messages)
-		{
-			foreach (var message in messages)
-			{
-				var data = Encoding.UTF8.GetString(message.Body.Array, message.Body.Offset, message.Body.Count);
-				Console.WriteLine(data);
-			}
-
-			return context.CheckpointAsync();
 		}
 	}
 }

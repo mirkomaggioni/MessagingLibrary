@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Messaging.Core.Services;
 using NUnit.Framework;
 
@@ -11,11 +9,14 @@ namespace ServiceBusTests.Services
 	{
 		private readonly string _eventHubPath = "ehmmtest1";
 		private AzureEventHubsService _sut;
+		private GenericEventsService _genericEventsService;
 
 		[SetUp]
 		public void Setup()
 		{
-			_sut = new AzureEventHubsService();
+			_genericEventsService = new GenericEventsService();
+			var azureEventProcessorFactory = new AzureEventProcessorFactory(_genericEventsService);
+			_sut = new AzureEventHubsService(azureEventProcessorFactory);
 		}
 
 		[Test]
@@ -46,8 +47,8 @@ namespace ServiceBusTests.Services
 				await Task.Delay(1000);
 			}
 
-			await Task.Delay(20000);
 			await _sut.StopConsumeEventsFromHub();
+			Assert.That(_genericEventsService.GetEvents().Count > 0);
 		}
 	}
 }

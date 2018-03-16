@@ -34,7 +34,7 @@ namespace ServiceBusTests.Services
 		public async Task ReadAllMessagesFromServiceBusQueueAsyncTest()
 		{
 			var results = await _sut.ReadAllMessageFromQueueAsync(_serviceBusQueue);
-			Assert.That(results.Count() > 0);
+			Assert.That(results.Any());
 			Assert.AreEqual(results.ElementAt(0).Body, "message");
 		}
 
@@ -42,7 +42,7 @@ namespace ServiceBusTests.Services
 		public async Task SubscribeToServiceBusQueueAsyncTest()
 		{
 			var results = await _sut.ReadMessageFromQueueAsync(_serviceBusQueue);
-			Assert.That(results.Count() > 0);
+			Assert.That(results.Any());
 			Assert.AreEqual(results.ElementAt(0).Body, "message");
 		}
 	}
