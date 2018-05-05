@@ -57,6 +57,7 @@
     <Compile Include="Services\AzureEventHubsServiceTests.cs" />
     <Compile Include="Services\AzureServiceBusServiceTests.cs" />
     <Compile Include="Services\MSMQServiceTests.cs" />
+    <Compile Include="Services\RabbitMQServiceTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
