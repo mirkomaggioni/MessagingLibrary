@@ -1,4 +1,5 @@
-﻿using Messaging.Core.Services;
+﻿using System.Linq;
+using Messaging.Core.Services;
 using NUnit.Framework;
 
 namespace ServiceBusTests.Services
@@ -25,11 +26,11 @@ namespace ServiceBusTests.Services
 		}
 
 		[Test]
-		public void ReadMessage()
+		public void ReadMessages()
 		{
-			var message = _sut.ReadMessageAsync("messages", "defaultqueue");
-			Assert.IsNotNull(message);
-			Assert.AreEqual(message.Body, "message");
+			var messages = _sut.ReadMessages("messages", "defaultqueue");
+			Assert.IsNotNull(messages);
+			Assert.AreEqual(messages.ElementAt(0).Body, "message");
 		}
 	}
 }

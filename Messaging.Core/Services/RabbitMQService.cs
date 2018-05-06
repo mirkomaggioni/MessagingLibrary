@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,17 +27,14 @@ namespace Messaging.Core.Services
 				if (!string.IsNullOrEmpty(exchange))
 					channel.ExchangeDeclare(exchange, type, false, false, null);
 
-				var properties = channel.CreateBasicProperties();
-				properties.Persistent = true;
-
 				var body = Encoding.UTF8.GetBytes(message);
-				channel.BasicPublish(exchange, routingKey, true, properties, body);
+				channel.BasicPublish(exchange, routingKey, true, null, body);
 			}
 		}
 
-		public GenericMessage ReadMessageAsync(string exchange, string queue, string routingKey = "", string type = "fanout")
+		public IEnumerable<GenericMessage> ReadMessages(string exchange, string queue, string routingKey = "", string type = "fanout")
 		{
-			GenericMessage message = null;
+			var messages = new List<GenericMessage>();
 
 			using (var connection = _factory.CreateConnection())
 			using (var channel = connection.CreateModel())
@@ -48,17 +46,19 @@ namespace Messaging.Core.Services
 				var consumer = new EventingBasicConsumer(channel);
 				var result = channel.BasicGet(queue, true);
 
-				if (result != null)
+				while (result != null)
 				{
-					message = new GenericMessage()
-					{
-						Body = Encoding.UTF8.GetString(result.Body),
-						MessageId = result.BasicProperties.MessageId
-					};
+					messages.Add(new GenericMessage()
+						{
+							Body = Encoding.UTF8.GetString(result.Body),
+							MessageId = result.BasicProperties.MessageId
+						});
+
+					result = channel.BasicGet(queue, true);
 				}
 			}
 
-			return message;
+			return messages;
 		}
 	}
 }
