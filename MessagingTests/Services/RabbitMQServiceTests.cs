@@ -22,7 +22,7 @@ namespace ServiceBusTests.Services
 		}
 
 		[Test]
-		public void SendMessages()
+		public void MessagesAreSent()
 		{
 			for (int i = 0; i < 10; i++)
 			{
@@ -33,7 +33,7 @@ namespace ServiceBusTests.Services
 		}
 
 		[Test]
-		public void ReadMessages()
+		public void AllMessagesInTheQueueAreReaded()
 		{
 			var messages = _sut.Get(exchange, queue);
 			Assert.IsNotNull(messages);
@@ -41,7 +41,7 @@ namespace ServiceBusTests.Services
 		}
 
 		[Test]
-		public void ConsumeMessagesAsync()
+		public void AllMessagesInTheQueueAreConsumed()
 		{
 			var messages = new List<GenericMessage>();
 			var callback = new Action<GenericMessage>((message) =>
@@ -49,7 +49,7 @@ namespace ServiceBusTests.Services
 				messages.Add(message);
 			});
 
-			var publisherTask = Task.Run(async () =>
+			var publisherTask = Task.Run(() =>
 			{
 				for (int i = 0; i < 10; i++)
 				{
