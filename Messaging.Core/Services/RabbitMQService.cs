@@ -20,28 +20,28 @@ namespace Messaging.Core.Services
 			_factory = new ConnectionFactory() { HostName = _hostName };
 		}
 
-		public void Publish(string message, string exchange, string routingKey = "", string type = "fanout")
+		public void Publish(string message, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			using (var connection = _factory.CreateConnection())
 			using (var channel = connection.CreateModel())
 			{
 				if (!string.IsNullOrEmpty(exchange))
-					channel.ExchangeDeclare(exchange, type, false, false, null);
+					channel.ExchangeDeclare(exchange, type, durable, false, null);
 
 				var body = Encoding.UTF8.GetBytes(message);
 				channel.BasicPublish(exchange, routingKey, true, null, body);
 			}
 		}
 
-		public IEnumerable<GenericMessage> Get(string exchange, string queue, string routingKey = "", string type = "fanout")
+		public IEnumerable<GenericMessage> Get(string exchange, string queue, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			var messages = new List<GenericMessage>();
 
 			using (var connection = _factory.CreateConnection())
 			using (var channel = connection.CreateModel())
 			{
-				channel.ExchangeDeclare(exchange, type, false, false);
-				channel.QueueDeclare(queue, false, false, false, null);
+				channel.ExchangeDeclare(exchange, type, durable, false);
+				channel.QueueDeclare(queue, durable, false, false, null);
 				channel.QueueBind(queue, exchange, routingKey);
 
 				var consumer = new EventingBasicConsumer(channel);
@@ -62,7 +62,7 @@ namespace Messaging.Core.Services
 			return messages;
 		}
 
-		public async Task SubscribeAsync(string exchange, string queue, Action<GenericMessage> callback, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout")
+		public async Task SubscribeAsync(string exchange, string queue, Action<GenericMessage> callback, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			if (callback == null)
 				throw new ArgumentNullException(nameof(callback));
@@ -72,8 +72,8 @@ namespace Messaging.Core.Services
 			using (var connection = _factory.CreateConnection())
 			using (var channel = connection.CreateModel())
 			{
-				channel.ExchangeDeclare(exchange, type, false, false);
-				channel.QueueDeclare(queue, false, false, false, null);
+				channel.ExchangeDeclare(exchange, type, durable, false);
+				channel.QueueDeclare(queue, durable, false, false, null);
 				channel.QueueBind(queue, exchange, routingKey);
 
 				var consumer = new EventingBasicConsumer(channel);
