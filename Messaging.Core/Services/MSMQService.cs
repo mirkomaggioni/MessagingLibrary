@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Messaging;
 using System.Threading.Tasks;
-using Messaging.Models;
+using Messaging.Core.Models;
 
 namespace Messaging.Services
 {

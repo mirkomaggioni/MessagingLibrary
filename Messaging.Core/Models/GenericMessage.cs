@@ -1,4 +1,4 @@
-﻿namespace Messaging.Models
+﻿namespace Messaging.Core.Models
 {
 	public class GenericMessage
 	{

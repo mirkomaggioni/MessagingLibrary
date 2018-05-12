@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Messaging.Models;
+using Messaging.Core.Models;
 
 namespace Messaging.Core.Services
 {

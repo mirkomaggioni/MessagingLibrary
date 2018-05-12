@@ -4,8 +4,8 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.ServiceBus.Messaging;
-using Messaging.Models;
 using System.Configuration;
+using Messaging.Core.Models;
 
 namespace Messaging.Services
 {

@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using Messaging.Models;
+using Messaging.Core.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
@@ -19,7 +20,7 @@ namespace Messaging.Core.Services
 			_factory = new ConnectionFactory() { HostName = _hostName };
 		}
 
-		public void SendMessage(string message, string exchange, string routingKey = "", string type = "fanout")
+		public void Publish(string message, string exchange, string routingKey = "", string type = "fanout")
 		{
 			using (var connection = _factory.CreateConnection())
 			using (var channel = connection.CreateModel())
@@ -32,7 +33,7 @@ namespace Messaging.Core.Services
 			}
 		}
 
-		public IEnumerable<GenericMessage> ReadMessages(string exchange, string queue, string routingKey = "", string type = "fanout")
+		public IEnumerable<GenericMessage> Get(string exchange, string queue, string routingKey = "", string type = "fanout")
 		{
 			var messages = new List<GenericMessage>();
 
@@ -59,6 +60,45 @@ namespace Messaging.Core.Services
 			}
 
 			return messages;
+		}
+
+		public async Task SubscribeAsync(string exchange, string queue, Action<GenericMessage> callback, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout")
+		{
+			if (callback == null)
+				throw new ArgumentNullException(nameof(callback));
+
+			var messages = new List<GenericMessage>();
+
+			using (var connection = _factory.CreateConnection())
+			using (var channel = connection.CreateModel())
+			{
+				channel.ExchangeDeclare(exchange, type, false, false);
+				channel.QueueDeclare(queue, false, false, false, null);
+				channel.QueueBind(queue, exchange, routingKey);
+
+				var consumer = new EventingBasicConsumer(channel);
+				consumer.Received += (model, result) =>
+				{
+					var body = result.Body;
+					var message = new GenericMessage()
+					{
+						Body = Encoding.UTF8.GetString(body),
+						MessageId = result.BasicProperties.MessageId
+					};
+
+					callback(message);
+				};
+
+				channel.BasicConsume(queue, true, consumer);
+
+				await Task.Run(async () =>
+				{
+					while (true)
+						await Task.Delay(30000).ConfigureAwait(false);
+				}, cancellationTokenSource.Token).ConfigureAwait(false);
+
+				channel.BasicCancel(consumer.ConsumerTag);
+			}
 		}
 	}
 }
