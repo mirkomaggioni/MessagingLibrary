@@ -17,7 +17,7 @@ namespace Messaging.Core.Services
 
 		public RabbitMQService()
 		{
-			_factory = new ConnectionFactory() { HostName = _hostName };
+			_factory = new ConnectionFactory() { HostName = _hostName, RequestedHeartbeat = 30 };
 		}
 
 		public void Publish(string message, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
@@ -67,6 +67,7 @@ namespace Messaging.Core.Services
 			if (callback == null)
 				throw new ArgumentNullException(nameof(callback));
 
+			var disconnected = false;
 			var messages = new List<GenericMessage>();
 
 			using (var connection = _factory.CreateConnection())
@@ -89,11 +90,21 @@ namespace Messaging.Core.Services
 					callback(message);
 				};
 
+				connection.ConnectionShutdown += (evt, args) =>
+				{
+					Task.Run(() =>
+					{
+						SubscribeAsync(exchange, queue, callback, cancellationTokenSource, routingKey, type, durable).ConfigureAwait(false);
+					});
+
+					disconnected = true;
+				};
+
 				channel.BasicConsume(queue, true, consumer);
 
 				await Task.Run(async () =>
 				{
-					while (true)
+					while (!disconnected)
 						await Task.Delay(30000).ConfigureAwait(false);
 				}, cancellationTokenSource.Token).ConfigureAwait(false);
 
