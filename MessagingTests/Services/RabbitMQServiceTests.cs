@@ -65,10 +65,6 @@ namespace ServiceBusTests.Services
 		public void AllMessagesInTheQueueAreConsumed()
 		{
 			var messages = new List<GenericMessage>();
-			var callback = new Action<GenericMessage>((message) =>
-			{
-				messages.Add(message);
-			});
 
 			var publisherTask = Task.Run(async () =>
 			{
@@ -78,7 +74,7 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(sharedExchange, consumerQueue, callback, cancellationTokenSource).ConfigureAwait(false);
+				_sut.SubscribeAsync(sharedExchange, consumerQueue, CallBack(messages), cancellationTokenSource).ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
@@ -90,10 +86,6 @@ namespace ServiceBusTests.Services
 		public void AllMessagesWithARoutingKeyAreConsumed()
 		{
 			var messages = new List<GenericMessage>();
-			var callback = new Action<GenericMessage>((message) =>
-			{
-				messages.Add(message);
-			});
 
 			var publisherTask = Task.Run(async () =>
 			{
@@ -103,7 +95,7 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(directExchange, hrConsumerQueue, callback, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
+				_sut.SubscribeAsync(directExchange, hrConsumerQueue, CallBack(messages), cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
@@ -115,10 +107,6 @@ namespace ServiceBusTests.Services
 		public void AllMessagesWithAnotherRoutingKeyAreNotConsumed()
 		{
 			var messages = new List<GenericMessage>();
-			var callback = new Action<GenericMessage>((message) =>
-			{
-				messages.Add(message);
-			});
 
 			var publisherTask = Task.Run(async () =>
 			{
@@ -128,7 +116,7 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(sharedExchange, hrConsumerQueue, callback, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
+				_sut.SubscribeAsync(sharedExchange, hrConsumerQueue, CallBack(messages), cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
@@ -167,6 +155,14 @@ namespace ServiceBusTests.Services
 			{
 				await Task.Delay(5000).ConfigureAwait(false);
 				cancellationTokenSource.Cancel();
+			});
+		}
+
+		private Action<GenericMessage> CallBack(List<GenericMessage> messages)
+		{
+			return new Action<GenericMessage>((message) =>
+			{
+				messages.Add(message);
 			});
 		}
 	}
