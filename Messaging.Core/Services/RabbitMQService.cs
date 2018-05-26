@@ -17,7 +17,13 @@ namespace Messaging.Core.Services
 
 		public RabbitMQService()
 		{
-			_factory = new ConnectionFactory() { HostName = _hostName, RequestedHeartbeat = 30 };
+			_factory = new ConnectionFactory()
+			{
+				HostName = _hostName,
+				RequestedHeartbeat = 30,
+				AutomaticRecoveryEnabled = true,
+				NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
+			};
 		}
 
 		public void Publish(string message, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
@@ -50,10 +56,10 @@ namespace Messaging.Core.Services
 				while (result != null)
 				{
 					messages.Add(new GenericMessage()
-						{
-							Body = Encoding.UTF8.GetString(result.Body),
-							MessageId = result.BasicProperties.MessageId
-						});
+					{
+						Body = Encoding.UTF8.GetString(result.Body),
+						MessageId = result.BasicProperties.MessageId
+					});
 
 					result = channel.BasicGet(queue, true);
 				}
@@ -87,20 +93,11 @@ namespace Messaging.Core.Services
 						MessageId = result.BasicProperties.MessageId
 					};
 
+					channel.BasicAck(result.DeliveryTag, false);
 					callback(message);
 				};
 
-				connection.ConnectionShutdown += (evt, args) =>
-				{
-					Task.Run(() =>
-					{
-						SubscribeAsync(exchange, queue, callback, cancellationTokenSource, routingKey, type, durable).ConfigureAwait(false);
-					});
-
-					disconnected = true;
-				};
-
-				channel.BasicConsume(queue, true, consumer);
+				channel.BasicConsume(queue, false, consumer);
 
 				await Task.Run(async () =>
 				{
