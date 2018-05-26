@@ -26,16 +26,18 @@ namespace Messaging.Core.Services
 			};
 		}
 
-		public void Publish(string message, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
+		public void Publish(GenericMessage message, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			using (var connection = _factory.CreateConnection())
 			using (var channel = connection.CreateModel())
 			{
-				if (!string.IsNullOrEmpty(exchange))
-					channel.ExchangeDeclare(exchange, type, durable, false, null);
+				var properties = channel.CreateBasicProperties();
+				properties.CorrelationId = message.CorrelationId ?? "";
+				properties.ReplyTo = message.ReplyTo ?? "";
 
-				var body = Encoding.UTF8.GetBytes(message);
-				channel.BasicPublish(exchange, routingKey, true, null, body);
+				channel.ExchangeDeclare(exchange, type, durable, false, null);
+				var body = Encoding.UTF8.GetBytes(message.Body);
+				channel.BasicPublish(exchange, routingKey, true, properties, body);
 			}
 		}
 
@@ -58,7 +60,9 @@ namespace Messaging.Core.Services
 					messages.Add(new GenericMessage()
 					{
 						Body = Encoding.UTF8.GetString(result.Body),
-						MessageId = result.BasicProperties.MessageId
+						MessageId = result.BasicProperties.MessageId,
+						CorrelationId = result.BasicProperties.CorrelationId,
+						ReplyTo = result.BasicProperties.ReplyTo
 					});
 
 					result = channel.BasicGet(queue, true);
@@ -90,11 +94,13 @@ namespace Messaging.Core.Services
 					var message = new GenericMessage()
 					{
 						Body = Encoding.UTF8.GetString(body),
-						MessageId = result.BasicProperties.MessageId
+						MessageId = result.BasicProperties.MessageId,
+						CorrelationId = result.BasicProperties.CorrelationId,
+						ReplyTo = result.BasicProperties.ReplyTo
 					};
 
-					channel.BasicAck(result.DeliveryTag, false);
 					callback(message);
+					channel.BasicAck(result.DeliveryTag, false);
 				};
 
 				channel.BasicConsume(queue, false, consumer);

@@ -30,14 +30,14 @@ namespace ServiceBusTests.Services
 		[Test]
 		public async Task MessagesAreSentAsync()
 		{
-			await PublishMessagesAsync("test message", sharedExchange).ConfigureAwait(false);
+			await PublishMessagesAsync(new GenericMessage() { Body = "test message" }, sharedExchange).ConfigureAwait(false);
 			Assert.IsTrue(true);
 		}
 
 		[Test]
 		public async Task AllMessagesInTheQueueAreReadedAsync()
 		{
-			await PublishMessagesAsync("test message", sharedExchange).ConfigureAwait(false);
+			await PublishMessagesAsync(new GenericMessage() { Body = "test message" }, sharedExchange).ConfigureAwait(false);
 			var messages = _sut.Get(sharedExchange, sharedQueue);
 			Assert.IsNotNull(messages);
 			Assert.AreEqual(messages.ElementAt(0).Body, "test message");
@@ -46,7 +46,7 @@ namespace ServiceBusTests.Services
 		[Test]
 		public async Task AllMessagesWithARoutingKeyAreReadedAsync()
 		{
-			await PublishMessagesAsync("hr message", directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
+			await PublishMessagesAsync(new GenericMessage() { Body = "hr message" }, directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
 			var messages = _sut.Get(directExchange, hrQueue, hrRoutingKey, "direct");
 			Assert.IsNotNull(messages);
 			Assert.AreEqual(messages.ElementAt(0).Body, "hr message");
@@ -55,7 +55,7 @@ namespace ServiceBusTests.Services
 		[Test]
 		public async Task AllMessagesWithAnotherRoutingKeyAreNotReadedAsync()
 		{
-			await PublishMessagesAsync("marketing message", directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
+			await PublishMessagesAsync(new GenericMessage() { Body = "marketing message" }, directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
 			var messages = _sut.Get(directExchange, hrQueue, hrRoutingKey, "direct");
 			Assert.IsNotNull(messages);
 			Assert.AreEqual(messages.Count(), 0);
@@ -68,7 +68,7 @@ namespace ServiceBusTests.Services
 
 			var publisherTask = Task.Run(async () =>
 			{
-				await PublishMessagesAsync("test message", sharedExchange).ConfigureAwait(false);
+				await PublishMessagesAsync(new GenericMessage() { Body = "test message" }, sharedExchange).ConfigureAwait(false);
 			});
 
 			var cancellationTokenSource = new CancellationTokenSource();
@@ -89,7 +89,7 @@ namespace ServiceBusTests.Services
 
 			var publisherTask = Task.Run(async () =>
 			{
-				await PublishMessagesAsync("hr message", directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
+				await PublishMessagesAsync(new GenericMessage() { Body = "hr message" }, directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			var cancellationTokenSource = new CancellationTokenSource();
@@ -110,7 +110,7 @@ namespace ServiceBusTests.Services
 
 			var publisherTask = Task.Run(async () =>
 			{
-				await PublishMessagesAsync("marketing message", directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
+				await PublishMessagesAsync(new GenericMessage() { Body = "marketing message" }, directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			var cancellationTokenSource = new CancellationTokenSource();
@@ -124,7 +124,7 @@ namespace ServiceBusTests.Services
 			Assert.AreEqual(messages.Count, 0);
 		}
 
-		private async Task PublishMessagesAsync(string message, string exchange, string routingKey = "", string type = "fanout")
+		private async Task PublishMessagesAsync(GenericMessage message, string exchange, string routingKey = "", string type = "fanout")
 		{
 			var i = 0;
 			var published = false;
