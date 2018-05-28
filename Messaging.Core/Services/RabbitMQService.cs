@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Messaging.Core.Interfaces;
 using Messaging.Core.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -72,10 +73,10 @@ namespace Messaging.Core.Services
 			return messages;
 		}
 
-		public async Task SubscribeAsync(string exchange, string queue, Action<GenericMessage> callback, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
+		public async Task SubscribeAsync(string exchange, string queue, IMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
 		{
-			if (callback == null)
-				throw new ArgumentNullException(nameof(callback));
+			if (messageHandler == null)
+				throw new ArgumentNullException(nameof(messageHandler));
 
 			var disconnected = false;
 			var messages = new List<GenericMessage>();
@@ -99,7 +100,7 @@ namespace Messaging.Core.Services
 						ReplyTo = result.BasicProperties.ReplyTo
 					};
 
-					callback(message);
+					messageHandler.Handle(message);
 					channel.BasicAck(result.DeliveryTag, false);
 				};
 

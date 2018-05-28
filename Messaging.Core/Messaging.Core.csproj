@@ -120,8 +120,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Handlers\MessageHandler.cs" />
     <Compile Include="Models\GenericEvent.cs" />
     <Compile Include="Models\GenericMessage.cs" />
+    <Compile Include="Interfaces\IMessageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AzureEventHubsService.cs" />
     <Compile Include="Services\AzureEventProcessorFactory.cs" />

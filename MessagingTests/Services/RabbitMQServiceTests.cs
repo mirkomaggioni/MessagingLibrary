@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Messaging.Core.Interfaces;
 using Messaging.Core.Models;
+using Messaging.Core.Models.Rabbit;
 using Messaging.Core.Services;
 using NUnit.Framework;
 
@@ -12,6 +14,7 @@ namespace ServiceBusTests.Services
 	public class RabbitMQServiceTests
 	{
 		private RabbitMQService _sut;
+		private IMessageHandler _messageHandler;
 		private readonly string sharedExchange = "message.shared";
 		private readonly string directExchange = "message.direct";
 		private readonly string sharedQueue = "message-shared-queue";
@@ -25,6 +28,7 @@ namespace ServiceBusTests.Services
 		public void Setup()
 		{
 			_sut = new RabbitMQService();
+			_messageHandler = new MessageHandler();
 		}
 
 		[Test]
@@ -64,8 +68,6 @@ namespace ServiceBusTests.Services
 		[Test]
 		public void AllMessagesInTheQueueAreConsumed()
 		{
-			var messages = new List<GenericMessage>();
-
 			var publisherTask = Task.Run(async () =>
 			{
 				await PublishMessagesAsync(new GenericMessage() { Body = "test message" }, sharedExchange).ConfigureAwait(false);
@@ -74,19 +76,17 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(sharedExchange, consumerQueue, CallBack(messages), cancellationTokenSource).ConfigureAwait(false);
+				_sut.SubscribeAsync(sharedExchange, consumerQueue, _messageHandler, cancellationTokenSource).ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
 
-			Assert.AreEqual(messages.Count, 10);
+			Assert.AreEqual(_messageHandler.Messages.Count, 10);
 		}
 
 		[Test]
 		public void AllMessagesWithARoutingKeyAreConsumed()
 		{
-			var messages = new List<GenericMessage>();
-
 			var publisherTask = Task.Run(async () =>
 			{
 				await PublishMessagesAsync(new GenericMessage() { Body = "hr message" }, directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
@@ -95,19 +95,17 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(directExchange, hrConsumerQueue, CallBack(messages), cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
+				_sut.SubscribeAsync(directExchange, hrConsumerQueue, _messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
 
-			Assert.AreEqual(messages.Count, 10);
+			Assert.AreEqual(_messageHandler.Messages.Count, 10);
 		}
 
 		[Test]
 		public void AllMessagesWithAnotherRoutingKeyAreNotConsumed()
 		{
-			var messages = new List<GenericMessage>();
-
 			var publisherTask = Task.Run(async () =>
 			{
 				await PublishMessagesAsync(new GenericMessage() { Body = "marketing message" }, directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
@@ -116,12 +114,12 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(sharedExchange, hrConsumerQueue, CallBack(messages), cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
+				_sut.SubscribeAsync(sharedExchange, hrConsumerQueue, _messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
 
-			Assert.AreEqual(messages.Count, 0);
+			Assert.AreEqual(_messageHandler.Messages.Count, 0);
 		}
 
 		private async Task PublishMessagesAsync(GenericMessage message, string exchange, string routingKey = "", string type = "fanout")
@@ -155,14 +153,6 @@ namespace ServiceBusTests.Services
 			{
 				await Task.Delay(5000).ConfigureAwait(false);
 				cancellationTokenSource.Cancel();
-			});
-		}
-
-		private Action<GenericMessage> CallBack(List<GenericMessage> messages)
-		{
-			return new Action<GenericMessage>((message) =>
-			{
-				messages.Add(message);
 			});
 		}
 	}

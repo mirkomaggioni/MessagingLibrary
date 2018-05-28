@@ -1,4 +1,6 @@
-﻿namespace Messaging.Core.Models
+﻿using Messaging.Core.Interfaces;
+
+namespace Messaging.Core.Models
 {
 	public class GenericMessage
 	{
