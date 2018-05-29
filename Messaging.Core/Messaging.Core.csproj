@@ -120,7 +120,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Handlers\MessageHandler.cs" />
+    <Compile Include="Interfaces\IConfiguration.cs" />
+    <Compile Include="Interfaces\IMessageConsumer.cs" />
+    <Compile Include="Models\Configuration.cs" />
+    <Compile Include="Models\MessageConsumer.cs" />
+    <Compile Include="Models\MessageHandler.cs" />
     <Compile Include="Models\GenericEvent.cs" />
     <Compile Include="Models\GenericMessage.cs" />
     <Compile Include="Interfaces\IMessageHandler.cs" />

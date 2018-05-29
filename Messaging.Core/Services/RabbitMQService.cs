@@ -75,45 +75,10 @@ namespace Messaging.Core.Services
 
 		public async Task SubscribeAsync(string exchange, string queue, IMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
 		{
-			if (messageHandler == null)
-				throw new ArgumentNullException(nameof(messageHandler));
-
-			var disconnected = false;
-			var messages = new List<GenericMessage>();
-
-			using (var connection = _factory.CreateConnection())
-			using (var channel = connection.CreateModel())
-			{
-				channel.ExchangeDeclare(exchange, type, durable, false);
-				channel.QueueDeclare(queue, durable, false, false, null);
-				channel.QueueBind(queue, exchange, routingKey);
-
-				var consumer = new EventingBasicConsumer(channel);
-				consumer.Received += (model, result) =>
-				{
-					var body = result.Body;
-					var message = new GenericMessage()
-					{
-						Body = Encoding.UTF8.GetString(body),
-						MessageId = result.BasicProperties.MessageId,
-						CorrelationId = result.BasicProperties.CorrelationId,
-						ReplyTo = result.BasicProperties.ReplyTo
-					};
-
-					messageHandler.Handle(message);
-					channel.BasicAck(result.DeliveryTag, false);
-				};
-
-				channel.BasicConsume(queue, false, consumer);
-
-				await Task.Run(async () =>
-				{
-					while (!disconnected)
-						await Task.Delay(30000).ConfigureAwait(false);
-				}, cancellationTokenSource.Token).ConfigureAwait(false);
-
-				channel.BasicCancel(consumer.ConsumerTag);
-			}
+			var rabbitConfiguration = new RabbitConfiguration(_factory, exchange, queue, routingKey, type, durable);
+			var messageConsumer = new MessageConsumer();
+			messageConsumer.Setup(rabbitConfiguration);
+			await messageConsumer.ConsumeAsync(messageHandler, cancellationTokenSource);
 		}
 	}
 }
