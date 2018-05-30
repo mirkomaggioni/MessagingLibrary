@@ -13,7 +13,7 @@ namespace ServiceBusTests.Services
 	public class RabbitMQServiceTests
 	{
 		private RabbitMQService _sut;
-		private IMessageHandler _messageHandler;
+		private IRabbitMessageHandler _messageHandler;
 		private readonly string sharedExchange = "message.shared";
 		private readonly string directExchange = "message.direct";
 		private readonly string sharedQueue = "message-shared-queue";
@@ -27,7 +27,7 @@ namespace ServiceBusTests.Services
 		public void Setup()
 		{
 			_sut = new RabbitMQService();
-			_messageHandler = new MessageHandler();
+			_messageHandler = new RabbitMessageHandler();
 		}
 
 		[Test]

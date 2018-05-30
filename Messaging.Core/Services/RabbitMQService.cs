@@ -73,10 +73,10 @@ namespace Messaging.Core.Services
 			return messages;
 		}
 
-		public async Task SubscribeAsync(string exchange, string queue, IMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
+		public async Task SubscribeAsync(string exchange, string queue, IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_factory, exchange, queue, routingKey, type, durable);
-			var messageConsumer = new MessageConsumer();
+			var messageConsumer = new RabbitConsumer();
 			messageConsumer.Setup(rabbitConfiguration);
 			await messageConsumer.ConsumeAsync(messageHandler, cancellationTokenSource);
 		}

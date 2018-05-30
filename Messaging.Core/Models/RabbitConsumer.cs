@@ -3,13 +3,12 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Messaging.Core.Models
 {
-	public class MessageConsumer : IMessageConsumer
+	public class RabbitConsumer : IRabbitConsumer
 	{
 		private RabbitConfiguration _rabbitConfiguration;
 
@@ -18,7 +17,7 @@ namespace Messaging.Core.Models
 			_rabbitConfiguration = rabbitConfiguration;
 		}
 
-		public async Task ConsumeAsync(IMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource)
+		public async Task ConsumeAsync(IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource)
 		{
 			if (messageHandler == null)
 				throw new ArgumentNullException(nameof(messageHandler));
@@ -36,16 +35,7 @@ namespace Messaging.Core.Models
 				var consumer = new EventingBasicConsumer(channel);
 				consumer.Received += (model, result) =>
 				{
-					var body = result.Body;
-					var message = new GenericMessage()
-					{
-						Body = Encoding.UTF8.GetString(body),
-						MessageId = result.BasicProperties.MessageId,
-						CorrelationId = result.BasicProperties.CorrelationId,
-						ReplyTo = result.BasicProperties.ReplyTo
-					};
-
-					messageHandler.Handle(message);
+					messageHandler.Handle(model, result);
 					channel.BasicAck(result.DeliveryTag, false);
 				};
 

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 
 namespace Messaging.Core.Interfaces
 {
-	public interface IMessageConsumer
+	public interface IRabbitConsumer
 	{
 		void Setup(RabbitConfiguration rabbitConfiguration);
-		Task ConsumeAsync(IMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource);
+		Task ConsumeAsync(IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource);
 	}
 }

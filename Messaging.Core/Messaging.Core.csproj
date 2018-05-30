@@ -120,14 +120,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interfaces\IConfiguration.cs" />
-    <Compile Include="Interfaces\IMessageConsumer.cs" />
-    <Compile Include="Models\Configuration.cs" />
-    <Compile Include="Models\MessageConsumer.cs" />
-    <Compile Include="Models\MessageHandler.cs" />
+    <Compile Include="Interfaces\IRabbitConfiguration.cs" />
+    <Compile Include="Interfaces\IRabbitConsumer.cs" />
+    <Compile Include="Interfaces\IRabbitMessageHandler.cs" />
     <Compile Include="Models\GenericEvent.cs" />
     <Compile Include="Models\GenericMessage.cs" />
-    <Compile Include="Interfaces\IMessageHandler.cs" />
+    <Compile Include="Models\RabbitConfiguration.cs" />
+    <Compile Include="Models\RabbitConsumer.cs" />
+    <Compile Include="Models\RabbitMessageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AzureEventHubsService.cs" />
     <Compile Include="Services\AzureEventProcessorFactory.cs" />
