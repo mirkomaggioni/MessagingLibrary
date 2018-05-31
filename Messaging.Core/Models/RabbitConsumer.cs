@@ -17,6 +17,26 @@ namespace Messaging.Core.Models
 			_rabbitConfiguration = rabbitConfiguration;
 		}
 
+		public void Get(IRabbitMessageHandler messageHandler)
+		{
+			using (var connection = _rabbitConfiguration.ConnectionFactory.CreateConnection())
+			using (var channel = connection.CreateModel())
+			{
+				channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
+				channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
+				channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
+
+				var consumer = new EventingBasicConsumer(channel);
+				var result = channel.BasicGet(_rabbitConfiguration.Queue, true);
+
+				while (result != null)
+				{
+					messageHandler.Handle(result);
+					result = channel.BasicGet(_rabbitConfiguration.Queue, true);
+				}
+			}
+		}
+
 		public async Task ConsumeAsync(IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource)
 		{
 			if (messageHandler == null)

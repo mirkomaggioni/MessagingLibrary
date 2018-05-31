@@ -13,7 +13,6 @@ namespace ServiceBusTests.Services
 	public class RabbitMQServiceTests
 	{
 		private RabbitMQService _sut;
-		private IRabbitMessageHandler _messageHandler;
 		private readonly string sharedExchange = "message.shared";
 		private readonly string directExchange = "message.direct";
 		private readonly string sharedQueue = "message-shared-queue";
@@ -27,7 +26,6 @@ namespace ServiceBusTests.Services
 		public void Setup()
 		{
 			_sut = new RabbitMQService();
-			_messageHandler = new RabbitMessageHandler();
 		}
 
 		[Test]
@@ -40,33 +38,36 @@ namespace ServiceBusTests.Services
 		[Test]
 		public async Task AllMessagesInTheQueueAreReadedAsync()
 		{
+			var messageHandler = new RabbitMessageHandler();
 			await PublishMessagesAsync(new GenericMessage() { Body = "test message" }, sharedExchange).ConfigureAwait(false);
-			var messages = _sut.Get(sharedExchange, sharedQueue);
-			Assert.IsNotNull(messages);
-			Assert.AreEqual(messages.ElementAt(0).Body, "test message");
+			_sut.Get(sharedExchange, sharedQueue, messageHandler);
+			Assert.IsTrue(messageHandler.Messages.Count > 0);
+			Assert.AreEqual(messageHandler.Messages.ElementAt(0).Body, "test message");
 		}
 
 		[Test]
 		public async Task AllMessagesWithARoutingKeyAreReadedAsync()
 		{
+			var messageHandler = new RabbitMessageHandler();
 			await PublishMessagesAsync(new GenericMessage() { Body = "hr message" }, directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
-			var messages = _sut.Get(directExchange, hrQueue, hrRoutingKey, "direct");
-			Assert.IsNotNull(messages);
-			Assert.AreEqual(messages.ElementAt(0).Body, "hr message");
+			_sut.Get(directExchange, hrQueue, messageHandler, hrRoutingKey, "direct");
+			Assert.IsTrue(messageHandler.Messages.Count > 0);
+			Assert.AreEqual(messageHandler.Messages.ElementAt(0).Body, "hr message");
 		}
 
 		[Test]
 		public async Task AllMessagesWithAnotherRoutingKeyAreNotReadedAsync()
 		{
+			var messageHandler = new RabbitMessageHandler();
 			await PublishMessagesAsync(new GenericMessage() { Body = "marketing message" }, directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
-			var messages = _sut.Get(directExchange, hrQueue, hrRoutingKey, "direct");
-			Assert.IsNotNull(messages);
-			Assert.AreEqual(messages.Count(), 0);
+			_sut.Get(directExchange, hrQueue, messageHandler, hrRoutingKey, "direct");
+			Assert.AreEqual(messageHandler.Messages.Count, 0);
 		}
 
 		[Test]
 		public void AllMessagesInTheQueueAreConsumed()
 		{
+			var messageHandler = new RabbitMessageHandler();
 			var publisherTask = Task.Run(async () =>
 			{
 				await PublishMessagesAsync(new GenericMessage() { Body = "test message" }, sharedExchange).ConfigureAwait(false);
@@ -75,17 +76,18 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(sharedExchange, consumerQueue, _messageHandler, cancellationTokenSource).ConfigureAwait(false);
+				_sut.SubscribeAsync(sharedExchange, consumerQueue, messageHandler, cancellationTokenSource).ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
 
-			Assert.AreEqual(_messageHandler.Messages.Count, 10);
+			Assert.AreEqual(messageHandler.Messages.Count, 10);
 		}
 
 		[Test]
 		public void AllMessagesWithARoutingKeyAreConsumed()
 		{
+			var messageHandler = new RabbitMessageHandler();
 			var publisherTask = Task.Run(async () =>
 			{
 				await PublishMessagesAsync(new GenericMessage() { Body = "hr message" }, directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
@@ -94,17 +96,18 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(directExchange, hrConsumerQueue, _messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
+				_sut.SubscribeAsync(directExchange, hrConsumerQueue, messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
 
-			Assert.AreEqual(_messageHandler.Messages.Count, 10);
+			Assert.AreEqual(messageHandler.Messages.Count, 10);
 		}
 
 		[Test]
 		public void AllMessagesWithAnotherRoutingKeyAreNotConsumed()
 		{
+			var messageHandler = new RabbitMessageHandler();
 			var publisherTask = Task.Run(async () =>
 			{
 				await PublishMessagesAsync(new GenericMessage() { Body = "marketing message" }, directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
@@ -113,12 +116,12 @@ namespace ServiceBusTests.Services
 			var cancellationTokenSource = new CancellationTokenSource();
 			var subscriberTask = Task.Run(() =>
 			{
-				_sut.SubscribeAsync(sharedExchange, hrConsumerQueue, _messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
+				_sut.SubscribeAsync(sharedExchange, hrConsumerQueue, messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
 
-			Assert.AreEqual(_messageHandler.Messages.Count, 0);
+			Assert.AreEqual(messageHandler.Messages.Count, 0);
 		}
 
 		private async Task PublishMessagesAsync(GenericMessage message, string exchange, string routingKey = "", string type = "fanout")
