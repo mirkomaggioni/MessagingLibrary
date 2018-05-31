@@ -2,7 +2,6 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,7 +42,6 @@ namespace Messaging.Core.Models
 				throw new ArgumentNullException(nameof(messageHandler));
 
 			var disconnected = false;
-			var messages = new List<GenericMessage>();
 
 			using (var connection = _rabbitConfiguration.ConnectionFactory.CreateConnection())
 			using (var channel = connection.CreateModel())

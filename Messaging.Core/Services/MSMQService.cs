@@ -23,41 +23,39 @@ namespace Messaging.Services
 			return true;
 		}
 
-		public IEnumerable<GenericMessage> ReadAllMessageFromQueue(string queueName)
+		public IEnumerable<Payload> ReadAllMessageFromQueue(string queueName)
 		{
 			var messageQueue = new MessageQueue(queueName);
 			messageQueue.Formatter = new XmlMessageFormatter(new Type[] {typeof(string)});
-			var messages = new List<GenericMessage>();
-			var queueMessages = messageQueue.GetAllMessages();
-
-			foreach (var message in queueMessages)
+			var payloads = new List<Payload>();
+			foreach (var message in messageQueue.GetAllMessages())
 			{
-				var genericMessage = new GenericMessage()
+				var payload = new Payload()
 				{
 					MessageId = message.Id,
 					Body = message.Body.ToString()
 				};
 
-				messages.Add(genericMessage);
+				payloads.Add(payload);
 			}
 
 			messageQueue.Purge();
 			messageQueue.Close();
 
-			return messages;
+			return payloads;
 		}
 
-		public async Task<IEnumerable<GenericMessage>> ReadMessageFromQueueAsync(string queueName)
+		public async Task<IEnumerable<Payload>> ReadMessageFromQueueAsync(string queueName)
 		{
 			var messageNumber = 0;
 			MessageQueue messageQueue = new MessageQueue(queueName);
 			messageQueue.Refresh();
 			messageQueue.Formatter = new XmlMessageFormatter(new Type[] {typeof(string)});
-			var messages = new List<GenericMessage>();
+			var payloads = new List<Payload>();
 
 			await Task.Run(async () =>
 			{
-				ReceiveMessages(messageNumber, messageQueue, messages);
+				ReceiveMessages(messageNumber, messageQueue, payloads);
 
 				await Task.Delay(20000);
 			});
@@ -65,10 +63,10 @@ namespace Messaging.Services
 			messageQueue.Purge();
 			messageQueue.Close();
 
-			return messages;
+			return payloads;
 		}
 
-		private static void ReceiveMessages(int messageNumber, MessageQueue messageQueue, List<GenericMessage> messages)
+		private static void ReceiveMessages(int messageNumber, MessageQueue messageQueue, List<Payload> payloads)
 		{
 			messageQueue.BeginReceive(TimeSpan.FromSeconds(2), messageNumber, (asyncResult) =>
 			{
@@ -76,7 +74,7 @@ namespace Messaging.Services
 				{
 					var message = messageQueue.EndReceive(asyncResult);
 
-					messages.Add(new GenericMessage()
+					payloads.Add(new Payload()
 					{
 						MessageId = message.Id,
 						Body = message.Body.ToString()
@@ -84,7 +82,7 @@ namespace Messaging.Services
 
 					messageNumber++;
 
-					ReceiveMessages(messageNumber, messageQueue, messages);
+					ReceiveMessages(messageNumber, messageQueue, payloads);
 				}
 				catch (Exception) { }
 			});

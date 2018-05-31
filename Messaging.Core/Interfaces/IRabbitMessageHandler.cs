@@ -7,7 +7,7 @@ namespace Messaging.Core.Interfaces
 {
 	public interface IRabbitMessageHandler
 	{
-		List<GenericMessage> Messages { get; set; }
+		List<Payload> Payloads { get; set; }
 		void Handle(BasicGetResult result);
 		void Handle(object model, BasicDeliverEventArgs result);
 	}

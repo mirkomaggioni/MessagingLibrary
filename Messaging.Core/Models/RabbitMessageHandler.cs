@@ -8,11 +8,11 @@ namespace Messaging.Core.Models.Rabbit
 {
 	public class RabbitMessageHandler : IRabbitMessageHandler
 	{
-		public List<GenericMessage> Messages { get; set; } = new List<GenericMessage>();
+		public List<Payload> Payloads { get; set; } = new List<Payload>();
 
 		public void Handle(BasicGetResult result)
 		{
-			Messages.Add(new GenericMessage()
+			Payloads.Add(new Payload()
 			{
 				Body = Encoding.UTF8.GetString(result.Body),
 				MessageId = result.BasicProperties.MessageId,
@@ -23,7 +23,7 @@ namespace Messaging.Core.Models.Rabbit
 
 		public void Handle(object model, BasicDeliverEventArgs result)
 		{
-			Messages.Add(new GenericMessage()
+			Payloads.Add(new Payload()
 			{
 				Body = Encoding.UTF8.GetString(result.Body),
 				MessageId = result.BasicProperties.MessageId,

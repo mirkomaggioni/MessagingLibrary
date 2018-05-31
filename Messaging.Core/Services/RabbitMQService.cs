@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Configuration;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Messaging.Core.Interfaces;
@@ -25,24 +24,17 @@ namespace Messaging.Core.Services
 			};
 		}
 
-		public void Publish(GenericMessage message, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
+		public void Publish(Payload payload, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
 		{
-			using (var connection = _factory.CreateConnection())
-			using (var channel = connection.CreateModel())
-			{
-				var properties = channel.CreateBasicProperties();
-				properties.CorrelationId = message.CorrelationId ?? "";
-				properties.ReplyTo = message.ReplyTo ?? "";
-
-				channel.ExchangeDeclare(exchange, type, durable, false, null);
-				var body = Encoding.UTF8.GetBytes(message.Body);
-				channel.BasicPublish(exchange, routingKey, true, properties, body);
-			}
+			var rabbitConfiguration = new RabbitConfiguration(_factory, exchange, routingKey, type, durable);
+			var messagePublisher = new RabbitPublisher();
+			messagePublisher.Setup(rabbitConfiguration);
+			messagePublisher.Publish(payload);
 		}
 
 		public void Get(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false)
 		{
-			var rabbitConfiguration = new RabbitConfiguration(_factory, exchange, queue, routingKey, type, durable);
+			var rabbitConfiguration = new RabbitConfiguration(_factory, exchange, routingKey, type, durable, queue);
 			var messageConsumer = new RabbitConsumer();
 			messageConsumer.Setup(rabbitConfiguration);
 			messageConsumer.Get(messageHandler);
@@ -50,7 +42,7 @@ namespace Messaging.Core.Services
 
 		public async Task SubscribeAsync(string exchange, string queue, IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
 		{
-			var rabbitConfiguration = new RabbitConfiguration(_factory, exchange, queue, routingKey, type, durable);
+			var rabbitConfiguration = new RabbitConfiguration(_factory, exchange, routingKey, type, durable, queue);
 			var messageConsumer = new RabbitConsumer();
 			messageConsumer.Setup(rabbitConfiguration);
 			await messageConsumer.ConsumeAsync(messageHandler, cancellationTokenSource);

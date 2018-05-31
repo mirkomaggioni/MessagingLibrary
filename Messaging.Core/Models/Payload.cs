@@ -1,8 +1,6 @@
-﻿using Messaging.Core.Interfaces;
-
-namespace Messaging.Core.Models
+﻿namespace Messaging.Core.Models
 {
-	public class GenericMessage
+	public class Payload
 	{
 		public string Label { get; set; }
 		public string MessageId { get; set; }

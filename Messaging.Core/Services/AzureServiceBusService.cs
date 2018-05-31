@@ -36,10 +36,10 @@ namespace Messaging.Services
 			return true;
 		}
 
-		public async Task<IEnumerable<GenericMessage>> ReadAllMessageFromQueueAsync(string queueName)
+		public async Task<IEnumerable<Payload>> ReadAllMessageFromQueueAsync(string queueName)
 		{
 			var subscriber = await _factory.CreateMessageReceiverAsync(queueName);
-			var messages = new List<GenericMessage>();
+			var payloads = new List<Payload>();
 			BrokeredMessage message = null;
 
 			while ((message = await subscriber.ReceiveAsync(new TimeSpan(hours: 0, minutes: 0, seconds: 5))) != null)
@@ -52,32 +52,31 @@ namespace Messaging.Services
 						stream.CopyTo(memoryStream);
 						var body = Encoding.UTF8.GetString(memoryStream.ToArray());
 
-						var receivedMessage = new GenericMessage();
-						receivedMessage.MessageId = message.MessageId;
-						receivedMessage.Label = message.Label;
-						receivedMessage.Body = body;
-						messages.Add(receivedMessage);
+						var payload = new Payload();
+						payload.MessageId = message.MessageId;
+						payload.Label = message.Label;
+						payload.Body = body;
+						payloads.Add(payload);
 						await message.CompleteAsync();
 					}
 				}
-				catch (Exception ex)
+				catch (Exception)
 				{
-					//Log
 					await message.DeadLetterAsync();
 				}
 			}
 
 			await subscriber.CloseAsync();
-			return messages;
+			return payloads;
 		}
 
-		public async Task<IEnumerable<GenericMessage>> ReadMessageFromQueueAsync(string queueName)
+		public async Task<IEnumerable<Payload>> ReadMessageFromQueueAsync(string queueName)
 		{
-			var messages = new List<GenericMessage>();
+			var payloads = new List<Payload>();
 			var subscriber = _factory.CreateQueueClient(queueName);
 
 			subscriber.OnMessageAsync(
-				async message =>
+				(Func<BrokeredMessage, Task>)(async message =>
 				{
 					using (var stream = message.GetBody<Stream>())
 					using (var memoryStream = new MemoryStream())
@@ -85,19 +84,19 @@ namespace Messaging.Services
 						stream.CopyTo(memoryStream);
 						var body = Encoding.UTF8.GetString(memoryStream.ToArray());
 
-						var receivedMessage = new GenericMessage();
-						receivedMessage.MessageId = message.MessageId;
-						receivedMessage.Label = message.Label;
-						receivedMessage.Body = body;
-						messages.Add(receivedMessage);
+						var payload = new Payload();
+						payload.MessageId = message.MessageId;
+						payload.Label = message.Label;
+						payload.Body = body;
+						payloads.Add(payload);
 						await message.CompleteAsync();
 					};
-				});
+				}));
 
 			await Task.Delay(10000);
 
 			await subscriber.CloseAsync();
-			return messages;
+			return payloads;
 		}
 	}
 }
