@@ -118,10 +118,13 @@ namespace ServiceBusTests.Services
 
 		private void PublishMessages(Payload payload, string exchange, string routingKey = "", string type = "fanout")
 		{
+			var payloads = new List<Payload>();
 			for (int i = 0; i < 10; i++)
 			{
-				_sut.Publish(payload, exchange, routingKey, type);
+				payloads.Add(payload);
 			}
+
+			_sut.Publish(payloads, exchange, routingKey, type);
 		}
 
 		private Task CancelSubscriberTask()

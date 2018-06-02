@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Messaging.Core.Interfaces;
 using Messaging.Core.Models;
 using RabbitMQ.Client;
@@ -16,12 +17,12 @@ namespace Messaging.Core.Services
 			_connectionFactory = connectionFactory;
 		}
 
-		public void Publish(Payload payload, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
+		public void Publish(IEnumerable<Payload> payloads, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable);
 			var messagePublisher = new TPublisher();
 			messagePublisher.Setup(rabbitConfiguration);
-			messagePublisher.Publish(payload);
+			messagePublisher.Publish(payloads);
 		}
 
 		public void Get(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false)
