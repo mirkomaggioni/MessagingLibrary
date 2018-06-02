@@ -27,9 +27,11 @@ namespace Messaging.Core.Services
 		public void Get(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable, queue);
-			var messageConsumer = new TConsumer();
-			messageConsumer.Setup(rabbitConfiguration);
-			messageConsumer.Get(messageHandler);
+			using (var messageConsumer = new TConsumer())
+			{
+				messageConsumer.Setup(rabbitConfiguration);
+				messageConsumer.Get(messageHandler);
+			}
 		}
 
 		public Guid Subscribe(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false)
@@ -44,7 +46,7 @@ namespace Messaging.Core.Services
 			return consumerId;
 		}
 
-		public void Dispose(Guid consumerId)
+		public void Unsubscribe(Guid consumerId)
 		{
 			var consumer = _consumers[consumerId];
 			consumer.Dispose();

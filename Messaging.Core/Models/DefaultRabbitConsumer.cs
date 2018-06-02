@@ -20,7 +20,6 @@ namespace Messaging.Core.Models
 			_channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
 			_channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
 			_channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
-			_consumer = new EventingBasicConsumer(_channel);
 		}
 
 		public void Get(IRabbitMessageHandler messageHandler)
@@ -44,6 +43,7 @@ namespace Messaging.Core.Models
 			if (messageHandler == null)
 				throw new ArgumentNullException(nameof(messageHandler));
 
+			_consumer = new EventingBasicConsumer(_channel);
 			_consumer.Received += (model, result) =>
 			{
 				messageHandler.Handle(model, result);
@@ -55,7 +55,7 @@ namespace Messaging.Core.Models
 
 		public void Dispose()
 		{
-			if (_channel?.IsOpen == true)
+			if (_channel?.IsOpen == true && _consumer != null)
 			{
 				_channel.BasicCancel(_consumer.ConsumerTag);
 			}
