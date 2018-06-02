@@ -1,13 +1,12 @@
-﻿using Messaging.Core.Models;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using System;
+using Messaging.Core.Models;
 
 namespace Messaging.Core.Interfaces
 {
-	public interface IRabbitConsumer
+	public interface IRabbitConsumer : IDisposable
 	{
 		void Setup(RabbitConfiguration rabbitConfiguration);
 		void Get(IRabbitMessageHandler messageHandler);
-		Task ConsumeAsync(IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource);
+		void Consume(IRabbitMessageHandler messageHandler);
 	}
 }

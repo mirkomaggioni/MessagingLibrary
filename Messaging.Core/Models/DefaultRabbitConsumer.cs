@@ -2,18 +2,25 @@
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Messaging.Core.Models
 {
 	public class DefaultRabbitConsumer : IRabbitConsumer
 	{
 		private RabbitConfiguration _rabbitConfiguration;
+		private IConnection _connection;
+		private IModel _channel;
+		private EventingBasicConsumer _consumer;
 
 		public void Setup(RabbitConfiguration rabbitConfiguration)
 		{
 			_rabbitConfiguration = rabbitConfiguration;
+			_connection = _rabbitConfiguration.ConnectionFactory.CreateConnection();
+			_channel = _connection.CreateModel();
+			_channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
+			_channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
+			_channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
+			_consumer = new EventingBasicConsumer(_channel);
 		}
 
 		public void Get(IRabbitMessageHandler messageHandler)
@@ -21,25 +28,15 @@ namespace Messaging.Core.Models
 			if (_rabbitConfiguration == null)
 				throw new ApplicationException("Rabbit configuration is missing.");
 
-			using (var connection = _rabbitConfiguration.ConnectionFactory.CreateConnection())
-			using (var channel = connection.CreateModel())
+			var result = _channel.BasicGet(_rabbitConfiguration.Queue, true);
+			while (result != null)
 			{
-				channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
-				channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
-				channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
-
-				var consumer = new EventingBasicConsumer(channel);
-				var result = channel.BasicGet(_rabbitConfiguration.Queue, true);
-
-				while (result != null)
-				{
-					messageHandler.Handle(result);
-					result = channel.BasicGet(_rabbitConfiguration.Queue, true);
-				}
+				messageHandler.Handle(result);
+				result = _channel.BasicGet(_rabbitConfiguration.Queue, true);
 			}
 		}
 
-		public async Task ConsumeAsync(IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource)
+		public void Consume(IRabbitMessageHandler messageHandler)
 		{
 			if (_rabbitConfiguration == null)
 				throw new ApplicationException("Rabbit configuration is missing.");
@@ -47,30 +44,24 @@ namespace Messaging.Core.Models
 			if (messageHandler == null)
 				throw new ArgumentNullException(nameof(messageHandler));
 
-			using (var connection = _rabbitConfiguration.ConnectionFactory.CreateConnection())
-			using (var channel = connection.CreateModel())
+			_consumer.Received += (model, result) =>
 			{
-				channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
-				channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
-				channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
+				messageHandler.Handle(model, result);
+				_channel.BasicAck(result.DeliveryTag, false);
+			};
 
-				var consumer = new EventingBasicConsumer(channel);
-				consumer.Received += (model, result) =>
-				{
-					messageHandler.Handle(model, result);
-					channel.BasicAck(result.DeliveryTag, false);
-				};
+			_channel.BasicConsume(_rabbitConfiguration.Queue, false, _consumer);
+		}
 
-				channel.BasicConsume(_rabbitConfiguration.Queue, false, consumer);
-
-				await Task.Run(async () =>
-				{
-					while (true)
-						await Task.Delay(30000).ConfigureAwait(false);
-				}, cancellationTokenSource.Token).ConfigureAwait(false);
-
-				channel.BasicCancel(consumer.ConsumerTag);
+		public void Dispose()
+		{
+			if (_channel?.IsOpen == true)
+			{
+				_channel.BasicCancel(_consumer.ConsumerTag);
 			}
+
+			_channel?.Dispose();
+			_connection?.Dispose();
 		}
 	}
 }

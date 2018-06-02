@@ -80,13 +80,9 @@ namespace ServiceBusTests.Services
 				await PublishMessagesAsync(new Payload() { Body = "test message" }, sharedExchange).ConfigureAwait(false);
 			});
 
-			var cancellationTokenSource = new CancellationTokenSource();
-			var subscriberTask = Task.Run(() =>
-			{
-				_sut.SubscribeAsync(sharedExchange, consumerQueue, messageHandler, cancellationTokenSource).ConfigureAwait(false);
-			});
-
-			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
+			var subscriberTask = Task.Run(() => _sut.Subscribe(sharedExchange, consumerQueue, messageHandler));
+			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask());
+			_sut.Dispose(subscriberTask.Result);
 
 			Assert.AreEqual(messageHandler.Payloads.Count, 10);
 		}
@@ -100,13 +96,9 @@ namespace ServiceBusTests.Services
 				await PublishMessagesAsync(new Payload() { Body = "hr message" }, directExchange, hrRoutingKey, "direct").ConfigureAwait(false);
 			});
 
-			var cancellationTokenSource = new CancellationTokenSource();
-			var subscriberTask = Task.Run(() =>
-			{
-				_sut.SubscribeAsync(directExchange, hrConsumerQueue, messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
-			});
-
-			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
+			var subscriberTask = Task.Run(() => _sut.Subscribe(directExchange, hrConsumerQueue, messageHandler, hrRoutingKey, "direct"));
+			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask());
+			_sut.Dispose(subscriberTask.Result);
 
 			Assert.AreEqual(messageHandler.Payloads.Count, 10);
 		}
@@ -120,13 +112,9 @@ namespace ServiceBusTests.Services
 				await PublishMessagesAsync(new Payload() { Body = "marketing message" }, directExchange, marketingRoutingKey, "direct").ConfigureAwait(false);
 			});
 
-			var cancellationTokenSource = new CancellationTokenSource();
-			var subscriberTask = Task.Run(() =>
-			{
-				_sut.SubscribeAsync(sharedExchange, hrConsumerQueue, messageHandler, cancellationTokenSource, hrRoutingKey, "direct").ConfigureAwait(false);
-			});
-
-			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask(cancellationTokenSource));
+			var subscriberTask = Task.Run(() => _sut.Subscribe(sharedExchange, hrConsumerQueue, messageHandler, hrRoutingKey, "direct"));
+			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask());
+			_sut.Dispose(subscriberTask.Result);
 
 			Assert.AreEqual(messageHandler.Payloads.Count, 0);
 		}
@@ -152,16 +140,14 @@ namespace ServiceBusTests.Services
 					if (published)
 						i++;
 				}
-				
 			}
 		}
 
-		private Task CancelSubscriberTask(CancellationTokenSource cancellationTokenSource)
+		private Task CancelSubscriberTask()
 		{
 			return Task.Run(async () =>
 			{
 				await Task.Delay(5000).ConfigureAwait(false);
-				cancellationTokenSource.Cancel();
 			});
 		}
 	}
