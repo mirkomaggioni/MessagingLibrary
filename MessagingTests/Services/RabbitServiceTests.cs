@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Messaging.Core.Interfaces;
+using Autofac;
+using Messaging.Core;
 using Messaging.Core.Models;
 using Messaging.Core.Models.Rabbit;
 using Messaging.Core.Services;
@@ -10,9 +11,9 @@ using NUnit.Framework;
 
 namespace ServiceBusTests.Services
 {
-	public class RabbitMQServiceTests
+	public class RabbitServiceTests
 	{
-		private RabbitMQService _sut;
+		private RabbitService _sut;
 		private readonly string sharedExchange = "message.shared";
 		private readonly string directExchange = "message.direct";
 		private readonly string sharedQueue = "message-shared-queue";
@@ -25,7 +26,13 @@ namespace ServiceBusTests.Services
 		[SetUp]
 		public void Setup()
 		{
-			_sut = new RabbitMQService();
+			var containerBuilder = new ContainerBuilder();
+			containerBuilder.RegisterModule(new MessagingCoreModule());
+
+			using (var container = containerBuilder.Build())
+			{
+				_sut = container.Resolve<RabbitService>();
+			}
 		}
 
 		[Test]

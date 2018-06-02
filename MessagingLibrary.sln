@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Messaging.Core", "Messaging.Core\Messaging.Core.csproj", "{5395D950-2538-4879-86BE-CCAE661FDBDA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceBusTests", "MessagingTests\ServiceBusTests.csproj", "{2E7328D0-920F-4CC2-88F5-DC1685C60962}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessagingTests", "MessagingTests\MessagingTests.csproj", "{2E7328D0-920F-4CC2-88F5-DC1685C60962}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

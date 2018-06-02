@@ -30,6 +30,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac, Version=4.8.1.0, Culture=neutral, PublicKeyToken=17863af14b0044da, processorArchitecture=MSIL">
+      <HintPath>..\packages\Autofac.4.8.1\lib\net45\Autofac.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Azure.Amqp, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Azure.Amqp.2.2.0\lib\net45\Microsoft.Azure.Amqp.dll</HintPath>
     </Reference>
@@ -124,6 +127,7 @@
     <Compile Include="Interfaces\IRabbitConsumer.cs" />
     <Compile Include="Interfaces\IRabbitMessageHandler.cs" />
     <Compile Include="Interfaces\IRabbitPublisher.cs" />
+    <Compile Include="MessagingCoreModule.cs" />
     <Compile Include="Models\GenericEvent.cs" />
     <Compile Include="Models\Payload.cs" />
     <Compile Include="Models\RabbitConfiguration.cs" />
@@ -137,7 +141,7 @@
     <Compile Include="Services\EventProcessor.cs" />
     <Compile Include="Services\GenericEventsService.cs" />
     <Compile Include="Services\MSMQService.cs" />
-    <Compile Include="Services\RabbitMQService.cs" />
+    <Compile Include="Services\RabbitService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

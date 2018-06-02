@@ -18,6 +18,9 @@ namespace Messaging.Core.Models
 
 		public void Get(IRabbitMessageHandler messageHandler)
 		{
+			if (_rabbitConfiguration == null)
+				throw new ApplicationException("Rabbit configuration is missing.");
+
 			using (var connection = _rabbitConfiguration.ConnectionFactory.CreateConnection())
 			using (var channel = connection.CreateModel())
 			{
@@ -38,10 +41,11 @@ namespace Messaging.Core.Models
 
 		public async Task ConsumeAsync(IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource)
 		{
+			if (_rabbitConfiguration == null)
+				throw new ApplicationException("Rabbit configuration is missing.");
+
 			if (messageHandler == null)
 				throw new ArgumentNullException(nameof(messageHandler));
-
-			var disconnected = false;
 
 			using (var connection = _rabbitConfiguration.ConnectionFactory.CreateConnection())
 			using (var channel = connection.CreateModel())
@@ -61,7 +65,7 @@ namespace Messaging.Core.Models
 
 				await Task.Run(async () =>
 				{
-					while (!disconnected)
+					while (true)
 						await Task.Delay(30000).ConfigureAwait(false);
 				}, cancellationTokenSource.Token).ConfigureAwait(false);
 
