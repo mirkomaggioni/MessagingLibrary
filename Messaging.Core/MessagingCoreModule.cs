@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Configuration;
 using Autofac;
+using Messaging.Core.Models;
 using Messaging.Core.Services;
 using RabbitMQ.Client;
 
@@ -18,7 +19,7 @@ namespace Messaging.Core
 				NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
 			}).SingleInstance();
 
-			builder.RegisterType<RabbitService>().SingleInstance();
+			builder.RegisterType<RabbitService<DefaultRabbitPublisher, DefaultRabbitConsumer>>().SingleInstance();
 		}
 	}
 }

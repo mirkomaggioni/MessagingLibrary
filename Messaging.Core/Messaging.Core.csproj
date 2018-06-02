@@ -128,12 +128,12 @@
     <Compile Include="Interfaces\IRabbitMessageHandler.cs" />
     <Compile Include="Interfaces\IRabbitPublisher.cs" />
     <Compile Include="MessagingCoreModule.cs" />
+    <Compile Include="Models\DefaultRabbitConsumer.cs" />
+    <Compile Include="Models\DefaultRabbitPublisher.cs" />
     <Compile Include="Models\GenericEvent.cs" />
     <Compile Include="Models\Payload.cs" />
     <Compile Include="Models\RabbitConfiguration.cs" />
-    <Compile Include="Models\RabbitConsumer.cs" />
     <Compile Include="Models\RabbitMessageHandler.cs" />
-    <Compile Include="Models\RabbitPublisher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\AzureEventHubsService.cs" />
     <Compile Include="Services\AzureEventProcessorFactory.cs" />

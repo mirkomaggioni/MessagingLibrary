@@ -13,7 +13,7 @@ namespace ServiceBusTests.Services
 {
 	public class RabbitServiceTests
 	{
-		private RabbitService _sut;
+		private RabbitService<DefaultRabbitPublisher, DefaultRabbitConsumer> _sut;
 		private readonly string sharedExchange = "message.shared";
 		private readonly string directExchange = "message.direct";
 		private readonly string sharedQueue = "message-shared-queue";
@@ -31,7 +31,7 @@ namespace ServiceBusTests.Services
 
 			using (var container = containerBuilder.Build())
 			{
-				_sut = container.Resolve<RabbitService>();
+				_sut = container.Resolve<RabbitService<DefaultRabbitPublisher, DefaultRabbitConsumer>>();
 			}
 		}
 

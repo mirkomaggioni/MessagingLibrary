@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Messaging.Core.Models
 {
-	public class RabbitPublisher : IRabbitPublisher
+	public class DefaultRabbitPublisher : IRabbitPublisher
 	{
 		private RabbitConfiguration _rabbitConfiguration;
 

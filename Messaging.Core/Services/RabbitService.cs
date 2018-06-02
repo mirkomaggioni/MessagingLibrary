@@ -8,9 +8,8 @@ using RabbitMQ.Client;
 
 namespace Messaging.Core.Services
 {
-	public class RabbitService
+	public class RabbitService<TPublisher, TConsumer> where TPublisher : class, IRabbitPublisher, new() where TConsumer : class, IRabbitConsumer, new()
 	{
-		private readonly string _hostName = ConfigurationManager.ConnectionStrings["RabbitMQHostname"].ConnectionString;
 		private readonly ConnectionFactory _connectionFactory;
 
 		public RabbitService(ConnectionFactory connectionFactory)
@@ -21,7 +20,7 @@ namespace Messaging.Core.Services
 		public void Publish(Payload payload, string exchange, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable);
-			var messagePublisher = new RabbitPublisher();
+			var messagePublisher = new TPublisher();
 			messagePublisher.Setup(rabbitConfiguration);
 			messagePublisher.Publish(payload);
 		}
@@ -29,7 +28,7 @@ namespace Messaging.Core.Services
 		public void Get(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable, queue);
-			var messageConsumer = new RabbitConsumer();
+			var messageConsumer = new TConsumer();
 			messageConsumer.Setup(rabbitConfiguration);
 			messageConsumer.Get(messageHandler);
 		}
@@ -37,7 +36,7 @@ namespace Messaging.Core.Services
 		public async Task SubscribeAsync(string exchange, string queue, IRabbitMessageHandler messageHandler, CancellationTokenSource cancellationTokenSource, string routingKey = "", string type = "fanout", bool durable = false)
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable, queue);
-			var messageConsumer = new RabbitConsumer();
+			var messageConsumer = new TConsumer();
 			messageConsumer.Setup(rabbitConfiguration);
 			await messageConsumer.ConsumeAsync(messageHandler, cancellationTokenSource);
 		}

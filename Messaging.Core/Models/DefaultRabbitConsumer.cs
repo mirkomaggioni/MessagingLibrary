@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Messaging.Core.Models
 {
-	public class RabbitConsumer : IRabbitConsumer
+	public class DefaultRabbitConsumer : IRabbitConsumer
 	{
 		private RabbitConfiguration _rabbitConfiguration;
 
