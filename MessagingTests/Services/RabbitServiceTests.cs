@@ -72,11 +72,7 @@ namespace ServiceBusTests.Services
 		public void AllMessagesInTheQueueAreConsumed()
 		{
 			var messageHandler = new RabbitMessageHandler();
-			var publisherTask = Task.Run(() =>
-			{
-				PublishMessages(new Payload() { Body = "test message" }, sharedExchange);
-			});
-
+			var publisherTask = Task.Run(() => PublishMessages(new Payload() { Body = "test message" }, sharedExchange));
 			var subscriberTask = Task.Run(() => _sut.Subscribe(sharedExchange, "consumer-queue", messageHandler));
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask());
 			_sut.Unsubscribe(subscriberTask.Result);
@@ -88,11 +84,7 @@ namespace ServiceBusTests.Services
 		public void AllMessagesWithARoutingKeyAreConsumed()
 		{
 			var messageHandler = new RabbitMessageHandler();
-			var publisherTask = Task.Run(() =>
-			{
-				PublishMessages(new Payload() { Body = "hr message" }, directExchange, hrRoutingKey, "direct");
-			});
-
+			var publisherTask = Task.Run(() => PublishMessages(new Payload() { Body = "hr message" }, directExchange, hrRoutingKey, "direct"));
 			var subscriberTask = Task.Run(() => _sut.Subscribe(directExchange, "consumer-hr-queue", messageHandler, hrRoutingKey, "direct"));
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask());
 			_sut.Unsubscribe(subscriberTask.Result);
@@ -104,10 +96,7 @@ namespace ServiceBusTests.Services
 		public void AllMessagesWithAnotherRoutingKeyAreNotConsumed()
 		{
 			var messageHandler = new RabbitMessageHandler();
-			var publisherTask = Task.Run(() =>
-			{
-				PublishMessages(new Payload() { Body = "hr message" }, directExchange, hrRoutingKey, "direct");
-			});
+			var publisherTask = Task.Run(() => PublishMessages(new Payload() { Body = "hr message" }, directExchange, hrRoutingKey, "direct"));
 
 			var subscriberTask = Task.Run(() => _sut.Subscribe(directExchange, "consumer-marketing-queue", messageHandler, marketingRoutingKey, "direct"));
 			Task.WaitAll(publisherTask, subscriberTask, CancelSubscriberTask());
@@ -129,10 +118,7 @@ namespace ServiceBusTests.Services
 
 		private Task CancelSubscriberTask()
 		{
-			return Task.Run(async () =>
-			{
-				await Task.Delay(5000).ConfigureAwait(false);
-			});
+			return Task.Run(async () => await Task.Delay(5000).ConfigureAwait(false));
 		}
 	}
 }
