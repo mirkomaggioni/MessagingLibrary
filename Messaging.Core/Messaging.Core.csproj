@@ -125,8 +125,10 @@
   <ItemGroup>
     <Compile Include="Interfaces\IRabbitConfiguration.cs" />
     <Compile Include="Interfaces\IRabbitConsumer.cs" />
+    <Compile Include="Interfaces\IRabbitConsumerSetup.cs" />
     <Compile Include="Interfaces\IRabbitMessageHandler.cs" />
     <Compile Include="Interfaces\IRabbitPublisher.cs" />
+    <Compile Include="Interfaces\IRabbitPublisherSetup.cs" />
     <Compile Include="MessagingCoreModule.cs" />
     <Compile Include="Models\DefaultRabbitConsumer.cs" />
     <Compile Include="Models\DefaultRabbitPublisher.cs" />

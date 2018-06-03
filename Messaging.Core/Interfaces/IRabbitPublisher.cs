@@ -3,9 +3,8 @@ using Messaging.Core.Models;
 
 namespace Messaging.Core.Interfaces
 {
-	public interface IRabbitPublisher
+	public interface IRabbitPublisher : IRabbitPublisherSetup
 	{
-		void Setup(RabbitConfiguration rabbitConfiguration);
 		void Publish(IEnumerable<Payload> payloads);
 	}
 }

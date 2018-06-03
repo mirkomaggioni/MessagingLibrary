@@ -7,7 +7,7 @@ using RabbitMQ.Client;
 
 namespace Messaging.Core.Services
 {
-	public class RabbitService<TPublisher, TConsumer> where TPublisher : class, IRabbitPublisher, new() where TConsumer : class, IRabbitConsumer, new()
+	public class RabbitService<TPublisher, TConsumer> where TPublisher : class, IRabbitPublisherSetup, new() where TConsumer : class, IRabbitConsumerSetup, new()
 	{
 		private readonly ConnectionFactory _connectionFactory;
 		private readonly ConcurrentDictionary<Guid, TConsumer> _consumers = new ConcurrentDictionary<Guid, TConsumer>();
@@ -21,8 +21,7 @@ namespace Messaging.Core.Services
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable);
 			var messagePublisher = new TPublisher();
-			messagePublisher.Setup(rabbitConfiguration);
-			messagePublisher.Publish(payloads);
+			messagePublisher.Setup(rabbitConfiguration).Publish(payloads);
 		}
 
 		public void Get(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false)
@@ -30,8 +29,7 @@ namespace Messaging.Core.Services
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable, queue);
 			using (var messageConsumer = new TConsumer())
 			{
-				messageConsumer.Setup(rabbitConfiguration);
-				messageConsumer.Get(messageHandler);
+				messageConsumer.Setup(rabbitConfiguration).Get(messageHandler);
 			}
 		}
 
@@ -39,10 +37,9 @@ namespace Messaging.Core.Services
 		{
 			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable, queue);
 			var consumer = new TConsumer();
-			consumer.Setup(rabbitConfiguration);
 			var consumerId = Guid.NewGuid();
 			_consumers.TryAdd(consumerId, consumer);
-			consumer.Consume(messageHandler);
+			consumer.Setup(rabbitConfiguration).Consume(messageHandler);
 
 			return consumerId;
 		}

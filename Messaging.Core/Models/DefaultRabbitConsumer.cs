@@ -12,7 +12,7 @@ namespace Messaging.Core.Models
 		private IModel _channel;
 		private EventingBasicConsumer _consumer;
 
-		public void Setup(RabbitConfiguration rabbitConfiguration)
+		public IRabbitConsumer Setup(RabbitConfiguration rabbitConfiguration)
 		{
 			_rabbitConfiguration = rabbitConfiguration;
 			_connection = _rabbitConfiguration.ConnectionFactory.CreateConnection();
@@ -20,6 +20,7 @@ namespace Messaging.Core.Models
 			_channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
 			_channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
 			_channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
+			return this;
 		}
 
 		public void Get(IRabbitMessageHandler messageHandler)

@@ -8,9 +8,10 @@ namespace Messaging.Core.Models
 	{
 		private RabbitConfiguration _rabbitConfiguration;
 
-		public void Setup(RabbitConfiguration rabbitConfiguration)
+		public IRabbitPublisher Setup(RabbitConfiguration rabbitConfiguration)
 		{
 			_rabbitConfiguration = rabbitConfiguration;
+			return this;
 		}
 
 		public void Publish(IEnumerable<Payload> payloads)
