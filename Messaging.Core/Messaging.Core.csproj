@@ -123,6 +123,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EndPointResolver.cs" />
     <Compile Include="Interfaces\IRabbitConfiguration.cs" />
     <Compile Include="Interfaces\IRabbitConsumer.cs" />
     <Compile Include="Interfaces\IRabbitConsumerSetup.cs" />

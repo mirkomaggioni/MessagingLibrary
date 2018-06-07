@@ -11,14 +11,18 @@ namespace Messaging.Core
 	{
 		protected override void Load(ContainerBuilder builder)
 		{
-			builder.Register(c => new ConnectionFactory
+			var connectionFactory = new ConnectionFactory
 			{
-				HostName = ConfigurationManager.ConnectionStrings["RabbitMQHostname"].ConnectionString,
-				RequestedHeartbeat = 30,
+				UserName = ConfigurationManager.ConnectionStrings["RabbitMQUsername"].ConnectionString,
+				Password = ConfigurationManager.ConnectionStrings["RabbitMQPassword"].ConnectionString,
+				RequestedHeartbeat = 10,
 				AutomaticRecoveryEnabled = true,
 				NetworkRecoveryInterval = TimeSpan.FromSeconds(10)
-			}).SingleInstance();
+			};
 
+			connectionFactory.EndpointResolverFactory = (amqpTcpEndpoints) => new EndPointResolver();
+
+			builder.Register(c => connectionFactory).SingleInstance();
 			builder.RegisterType<RabbitService<DefaultRabbitPublisher, DefaultRabbitConsumer>>().SingleInstance();
 		}
 	}
