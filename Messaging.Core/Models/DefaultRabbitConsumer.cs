@@ -20,6 +20,7 @@ namespace Messaging.Core.Models
 			_channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
 			_channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
 			_channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
+
 			return this;
 		}
 
@@ -47,8 +48,15 @@ namespace Messaging.Core.Models
 			_consumer = new EventingBasicConsumer(_channel);
 			_consumer.Received += (model, result) =>
 			{
-				messageHandler.Handle(model, result);
-				_channel.BasicAck(result.DeliveryTag, false);
+				try
+				{
+					_channel.BasicAck(result.DeliveryTag, false);
+					messageHandler.Handle(model, result);
+				}
+				catch (Exception ex)
+				{
+					//Log exception
+				}
 			};
 
 			_channel.BasicConsume(_rabbitConfiguration.Queue, false, _consumer);
