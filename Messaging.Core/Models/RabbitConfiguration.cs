@@ -5,7 +5,7 @@ namespace Messaging.Core.Models
 {
 	public class RabbitConfiguration : IRabbitConfiguration
 	{
-		public RabbitConfiguration(ConnectionFactory connectionFactory, string exchange, string routingKey, string type, bool durable, string queue = "")
+		public RabbitConfiguration(ConnectionFactory connectionFactory, string exchange, string routingKey, string type, bool durable, string queue = "", ushort? qos = null)
 		{
 			ConnectionFactory = connectionFactory;
 			Exchange = exchange;
@@ -13,6 +13,7 @@ namespace Messaging.Core.Models
 			RoutingKey = routingKey;
 			Type = type;
 			Durable = durable;
+			QoS = qos;
 		}
 
 		public ConnectionFactory ConnectionFactory { get; }
@@ -21,5 +22,6 @@ namespace Messaging.Core.Models
 		public string RoutingKey { get; }
 		public string Type { get; }
 		public bool Durable { get; }
+		public ushort? QoS { get; }
 	}
 }

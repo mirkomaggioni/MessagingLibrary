@@ -1,7 +1,7 @@
-﻿using Messaging.Core.Interfaces;
+﻿using System;
+using Messaging.Core.Interfaces;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using System;
 
 namespace Messaging.Core.Models
 {
@@ -20,6 +20,11 @@ namespace Messaging.Core.Models
 			_channel.ExchangeDeclare(_rabbitConfiguration.Exchange, _rabbitConfiguration.Type, _rabbitConfiguration.Durable, false);
 			_channel.QueueDeclare(_rabbitConfiguration.Queue, _rabbitConfiguration.Durable, false, false, null);
 			_channel.QueueBind(_rabbitConfiguration.Queue, _rabbitConfiguration.Exchange, _rabbitConfiguration.RoutingKey);
+
+			if (_rabbitConfiguration.QoS.HasValue)
+			{
+				_channel.BasicQos(0, _rabbitConfiguration.QoS.Value, false);
+			}
 
 			return this;
 		}

@@ -10,5 +10,6 @@ namespace Messaging.Core.Interfaces
 		string RoutingKey { get; }
 		string Type { get; }
 		bool Durable { get; }
+		ushort? QoS { get; }
 	}
 }

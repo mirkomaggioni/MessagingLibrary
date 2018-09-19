@@ -33,9 +33,9 @@ namespace Messaging.Core.Services
 			}
 		}
 
-		public Guid Subscribe(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false)
+		public Guid Subscribe(string exchange, string queue, IRabbitMessageHandler messageHandler, string routingKey = "", string type = "fanout", bool durable = false, ushort? qos = null)
 		{
-			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable, queue);
+			var rabbitConfiguration = new RabbitConfiguration(_connectionFactory, exchange, routingKey, type, durable, queue, qos);
 			var consumer = new TConsumer();
 			var consumerId = Guid.NewGuid();
 			_consumers.TryAdd(consumerId, consumer);
